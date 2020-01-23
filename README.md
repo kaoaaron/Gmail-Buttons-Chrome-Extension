@@ -4,14 +4,14 @@
 
 Adds buttons to Gmail that inserts custom tags and gifs.
 
-*** The *auto* feature auto-submits an email in 1 click. Please be careful with this. ***
+The *auto* feature auto-submits an email in 1 click. Please be careful with this.
 
 ## Basic Usage Instructions
 
 1. Navigate to `chrome://extensions/`, locate the plugin, and click on details
 2. Click on the `Extension Options` icon
 3. Refresh Gmail
-* OR *
+* OR
 1. Click on the icon on the top right of the browser and select `options`
 2. Refresh Gmail
 
