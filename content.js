@@ -1,7 +1,5 @@
 //grab user data
 chrome.storage.local.get(["container", "savedData"], function (result) {
-  //console.log(result);
-  console.log(result);
   if (result.savedData !== undefined && result.savedData.length !== 0) {
     start(result.savedData);
   }
@@ -25,7 +23,7 @@ function start(data) {
     buttonRegion: ".amn",
     watcherRegion: ".BltHke.nH.oy8Mbf",
     watcherRegion2: ".AO",
-    splitViewRegion: ".ae4.nH.oy8Mbf.Zs",
+    splitViewRegion: ".ae4.Zs",
     replyAll: "span.ams.bkI",
     reply: "span.ams.bkH",
     send: ".T-I.J-J5-Ji.v7"
@@ -121,7 +119,6 @@ function start(data) {
     }
     range.collapse(true);
 
-    //if button is PST_IN_PROGRESS
     if ($(regions.send).length > 0 && button.auto) {
       $(regions.send)[0].click();
       //any other buttons action
@@ -161,11 +158,13 @@ function start(data) {
 
   //initialize buttons
   function initButtons() {
+    //if in multi-pane view
     if (
       $(regions.watcherRegion).length !== 0 &&
       $(regions.splitViewRegion).length !== 0
     ) {
       initButtonHelper(regions.watcherRegion);
+    //if in single-pane view
     } else if ($(regions.watcherRegion2).length !== 0) {
       initButtonHelper(regions.watcherRegion2);
     }
