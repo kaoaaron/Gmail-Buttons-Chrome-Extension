@@ -24,4 +24,4 @@ The *auto* feature auto-submits an email in 1 click. Please be careful with this
 1. options.js - 
 The logic to manipulate the options page is here. User input data is collected and stored in Chrome.
 2. content.js - 
-The main logic goes in here. It takes the data stored in Chrome, and injects the buttons onto the webpage. A [Giphy API key](https://developers.giphy.com/) will need to be inserted into line 229 to use the Gif feature.
+The main logic goes in here. It takes the data stored in Chrome, and injects the buttons onto the webpage. A [Giphy API key](https://developers.giphy.com/) will need to be inserted into line 228 to use the Gif feature.
