@@ -35,7 +35,7 @@ function saveOptions(event) {
         hoverFColor: hoverFColor,
         textColor: textColor,
         borderRad: borderRad,
-        auto: autoSendCond
+        auto: autoSendCond,
       };
 
       //if gif button
@@ -51,7 +51,7 @@ function saveOptions(event) {
         hoverFColor: hoverFColor,
         textColor: textColor,
         borderRad: borderRad,
-        auto: autoSendCond
+        auto: autoSendCond,
       };
     }
 
@@ -61,16 +61,27 @@ function saveOptions(event) {
   chrome.storage.local.set(
     {
       savedData: savedData,
-      container: document.getElementById("buttonContainer").outerHTML
+      container: document.getElementById("buttonContainer").outerHTML,
     },
     function () {
-      let saveMsg = "Settings have been saved";
+      let saveMsg = "Saving settings...";
+      let statusElement = document.getElementById("status");
+
+      // Display the save message
+      statusElement.textContent = saveMsg;
+
+      // Set a timeout to fade out the text after 2000 milliseconds
       setTimeout(function () {
-        document.getElementById("status").textContent = saveMsg;
+        statusElement.style.transition = "opacity 3s ease"; // Transition for 0.5 seconds
+        statusElement.style.opacity = 0; // Fade out the text
       }, 250);
+
+      // Clear the text after the transition completes
       setTimeout(function () {
-        document.getElementById("status").textContent = "";
-      }, 2000);
+        statusElement.textContent = ""; // Clear the text
+        statusElement.style.opacity = 1; // Reset the opacity
+        statusElement.style.transition = ""; // Reset the transition
+      }, 2750); // 250 (first setTimeout) + 2000 (time for fading out) + 500 (time for transition to complete)
     }
   );
 }
@@ -79,19 +90,22 @@ function saveOptions(event) {
 // stored in chrome.storage.
 function restore_options() {
   chrome.storage.local.get(["savedData"], function (result) {
+    if (result.savedData.length > 0) {
+      document.getElementById("clear").style.display = "inline-block";
+    }
+
     if (result.savedData !== undefined) {
       buttonNum = result.savedData.length + 1;
       document.getElementById("buttonContainer").innerHTML = recoverState(
         result.savedData
       );
+
       for (let i = 0; i < result.savedData.length; i++) {
         document
           .getElementById((i + 1).toString())
           .addEventListener("click", () => removeButton(event, i + 1));
       }
-
     }
-    //document.getElementById('gif').value = items.gif;
   });
 }
 
@@ -136,18 +150,23 @@ function recoverState(data) {
         )
       );
     }
-
-    console.log(tempData);
   }
-
-  console.log(tempData);
   return tempData;
-
 }
 
-function addOption(event, gif) {
+function getSelectedText() {
+  var selectElement = document.getElementById("color");
+  var selectedIndex = selectElement.selectedIndex;
+  var selectedOption = selectElement.options[selectedIndex];
+  var selectedText = selectedOption.textContent;
+
+  return selectedText;
+}
+
+function addOption(event) {
   event.preventDefault();
-  if (gif === "gif") {
+  const getSelectText = getSelectedText();
+  if (getSelectText === "Gif") {
     addButton(true);
   } else {
     addButton();
@@ -155,9 +174,12 @@ function addOption(event, gif) {
 }
 
 function removeButton(event, buttonID) {
-  console.log("button" + buttonID)
-  document.getElementById("button" + buttonID).remove()
-  buttonNum--
+  document.getElementById("button" + buttonID).remove();
+  buttonNum--;
+
+  if (buttonNum === 1) {
+    document.getElementById("clear").style.display = "none";
+  }
 
   let buttons = document.querySelectorAll(".tagButton, .gifButton");
 
@@ -165,10 +187,15 @@ function removeButton(event, buttonID) {
   [].forEach.call(buttons, function (button) {
     var buttonNum = button.getElementsByClassName("buttonNum")[0].innerHTML; //get button number
     if (buttonNum > buttonID) {
-      button.getElementsByClassName("buttonNum")[0].innerHTML = (parseInt(buttonNum) - 1).toString() //change button number
-      document.getElementById("button" + buttonNum).id = "button" + (parseInt(buttonNum) - 1).toString() //change button id
-      document.getElementById(buttonNum).id = (parseInt(buttonNum) - 1).toString() //change remove button id
-      console.log(buttonNum)
+      button.getElementsByClassName("buttonNum")[0].innerHTML = (
+        parseInt(buttonNum) - 1
+      ).toString(); //change button number
+      document.getElementById("button" + buttonNum).id =
+        "button" + (parseInt(buttonNum) - 1).toString(); //change button id
+      document.getElementById(buttonNum).id = (
+        parseInt(buttonNum) - 1
+      ).toString(); //change remove button id
+      console.log(buttonNum);
 
       //get rid of event listener
       var tempElement = document.getElementById((buttonNum - 1).toString());
@@ -181,18 +208,18 @@ function removeButton(event, buttonID) {
         .getElementById((buttonNum - 1).toString())
         .addEventListener("click", () => removeButton(event, buttonNum - 1));
     }
-  })
+  });
 }
 
 function addButton(
   gif = false,
   mode = "default",
   buttonNumber = 0,
-  textColor = "black",
-  bgColor = "aqua",
-  hoverBGColor = "black",
-  hoverFontColor = "white",
-  borderRad = "4px",
+  textColor = "#444746",
+  bgColor = "white",
+  hoverBGColor = "#f0f0f0",
+  hoverFontColor = "#444746",
+  borderRad = "18px",
   gifSearch = "",
   text = "",
   label = "",
@@ -203,61 +230,148 @@ function addButton(
   let tempButtonNum;
 
   if (mode === "recover") {
-    tempButtonNum = buttonNumber
+    tempButtonNum = buttonNumber;
   } else {
-    tempButtonNum = buttonNum
+    tempButtonNum = buttonNum;
   }
 
-  newInput.setAttribute("id", "button" + tempButtonNum)
+  newInput.setAttribute("id", "button" + tempButtonNum);
 
   if (gif === true) {
     tempData = tempData.concat(
       `<div class="gifButton">
-       <b>Button <span class="buttonNum">${tempButtonNum}</span>
-       <button id="${tempButtonNum}" style="background-color:lightblue">X</button>
-       </b><br><br>
-       <img src="giphy.png" alt="giphy icon"><br>
-			 Search: <input type="text" class="gif" value=${gifSearch}><br>`
+          <b>
+            <div class="buttonTextContainer">
+              <label>Button </label>
+              <span class="buttonNum">${tempButtonNum}</span>
+            </div>
+            <button id="${tempButtonNum}" class="removeButton">X</button>
+          </b><br><br>
+          <img src="giphy.png" alt="giphy icon"><br>
+          <label style="color: white;">Search:</label>
+          <input type="text" class="gif" value=${gifSearch}><br>
+      </div>
+      `
     );
   } else {
     tempData = tempData.concat(
       `<div class="tagButton">
-      <b>Button <span class="buttonNum">${tempButtonNum}</span>
-      <button id="${tempButtonNum}" style="background-color:lightblue">X</button>
-      </b><br><br>
-			Text: <textarea class="text" value=${text}>${text}</textarea><br>`
+          <b>
+            <div class="buttonTextContainer">
+              <label>Button <span class="buttonNum"">${tempButtonNum}</span></label>
+            </div>
+            <button id="${tempButtonNum}" class="removeButton">X</button>
+          </b><br><br>
+          <label class="labelText">Body Text:</label>
+          <textarea class="text" value=${text}>${text}</textarea><br>
+      </div>
+      `
     );
   }
 
   tempData = tempData.concat(`
-		Label: <input type="text" class="label" value=${label}><br>
-		Text Color: <input type="text" class="textColor" value=${textColor}><br>
-		BG Color: <input type="text" class="color" value=${bgColor}><br>
-		Hover BG Color: <input type="text" class="hoverColor" value=${hoverBGColor}><br>
-		Hover Font Color: <input type="text" class="hoverFColor" value=${hoverFontColor}><br>
-		Border Radius: <input type="text" class="borderRad" value=${borderRad}><br>
+  <style>
+    .buttonTextContainer {
+      display: inline-block;
+      border: 4px solid black;
+      background-color: #FBE5E0;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      position: relative;
+      color: black;
+      padding: 10px;
+    }
+
+    .autoText {
+      margin-bottom: 5px;
+      margin-top: 5px;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .removeButton {
+      border: 2px solid black;
+      background-color: white;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.5s;
+      position: relative;
+    }
+
+    .removeButton:hover {
+      color: white;
+      background-color: red;
+    }
+
+    .labelText {
+      display: block;
+      margin-bottom: 5px;
+      margin-top: 5px;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+  }
+
+    textArea {
+      width: 100%;
+    }
+
+    input[type="text"] {
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+        width: 100%;
+    }
+
+    input[type="text"]:focus {
+        border-color: #66afe9;
+        outline: none;
+    }
+
+    br {
+        margin-bottom: 10px;
+    }
+  </style>
+
+  <label class="labelText">Button Text:</label> <input type="text" class="label" value="${label}"><br>
+  <label class="labelText">Button Text Color:</label> <input type="text" class="textColor" value="${textColor}"><br>
+  <label class="labelText">Button Color:</label> <input type="text" class="color" value="${bgColor}"><br>
+  <label class="labelText">On Hover Button Color:</label> <input type="text" class="hoverColor" value="${hoverBGColor}"><br>
+  <label class="labelText">On Hover Button Text Color:</label> <input type="text" class="hoverFColor" value="${hoverFontColor}"><br>
+  <label class="labelText">Button Border Radius:</label> <input type="text" class="borderRad" value="${borderRad}"><br>
 	`);
 
   if (gif === false) {
     if (autoCond == false) {
       tempData = tempData.concat(
         `<label class="radio-inline">
-        Auto: <input class="autoCond" type="radio" name=${"auto" +
-        tempButtonNum} checked>No
+        <label class="autoText">Auto-Reply: </label> <input class="autoCond" type="radio" name=${
+          "auto" + tempButtonNum
+        } checked><label class="autoText"">No</label>
               </label>
         <label class="radio-inline">
-        <input type="radio" name=${"auto" + tempButtonNum} >Yes
+        <input type="radio" name=${
+          "auto" + tempButtonNum
+        } ><label class="autoText"">Yes</label>
         </label><br>
         </div>`
       );
     } else {
       tempData = tempData.concat(
         `<label class="radio-inline">
-        Auto: <input class="autoCond" type="radio" name=${"auto" +
-        tempButtonNum} >No
+        <label class-"autoText">Auto-Reply: </label> <input class="autoCond" type="radio" name=${
+          "auto" + tempButtonNum
+        } ><label class="autoText">No</label>
               </label>
         <label class="radio-inline">
-        <input type="radio" name=${"auto" + tempButtonNum} checked>Yes
+        <input type="radio" name=${
+          "auto" + tempButtonNum
+        } checked><label class="autoText">Yes</label>
         </label><br>
         </div>`
       );
@@ -266,16 +380,13 @@ function addButton(
     tempData = tempData.concat(`</div>`);
   }
 
-
   //recover mode
   if (mode === "recover") {
-    tempData = `<div id=${"button" + tempButtonNum}>` + tempData + `</div>`
-    console.log(tempData)
+    tempData = `<div id=${"button" + tempButtonNum}>` + tempData + `</div>`;
     return tempData;
   }
 
   newInput.innerHTML = tempData;
-  console.log(newInput.outerHTML)
   container.insertBefore(newInput, container.childNodes[-1]);
 
   document
@@ -283,12 +394,19 @@ function addButton(
     .addEventListener("click", () => removeButton(event, tempButtonNum));
 
   buttonNum++;
+
+  document.getElementById("clear").style.display = "inline-block";
 }
 
 function clearOptions(event) {
+  chrome.storage.local.remove("savedData", function () {
+    console.log("Data cleared");
+  });
+
   event.preventDefault();
-  buttonNum = 1
-  document.getElementById("buttonContainer").innerHTML = ""
+  buttonNum = 1;
+  document.getElementById("buttonContainer").innerHTML = "";
+  document.getElementById("clear").style.display = "none";
 }
 
 var buttonNum = 1;
@@ -299,10 +417,7 @@ document
   .getElementById("save")
   .addEventListener("click", () => saveOptions(event));
 document
-  .getElementById("addGif")
-  .addEventListener("click", () => addOption(event, "gif"));
-document
-  .getElementById("addTag")
+  .getElementById("add")
   .addEventListener("click", () => addOption(event));
 document
   .getElementById("clear")

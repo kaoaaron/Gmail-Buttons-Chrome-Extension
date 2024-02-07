@@ -26,7 +26,7 @@ function start(data) {
     splitViewRegion: ".ae4.Zs",
     replyAll: "span.ams.bkI",
     reply: "span.ams.bkH",
-    send: ".T-I.J-J5-Ji.v7"
+    send: ".T-I.J-J5-Ji.v7",
   };
 
   function buttonClicked(button) {
@@ -53,7 +53,6 @@ function start(data) {
         }
 
         if (x.length !== 0) {
-          //startObserver(regions.containerRegion, addTag, tag, multi, auto)
           $(x)[0].click();
           addTag(button);
         }
@@ -99,12 +98,14 @@ function start(data) {
       clearInterval(inter);
       var xhr = $.get(
         "https://api.giphy.com/v1/gifs/random?tag=" +
-        button.gif.replace(" ", "+") +
-        "?&api_key=" + APIKEY
+          button.gif.replace(" ", "+") +
+          "&api_key=" +
+          APIKEY
       );
       xhr.done(function (data) {
+        console.log("hi", data);
         $(x)[0].prepend(
-          $("<img src=" + data.data.image_url + "></img>").get(0)
+          $("<img src=" + data.data.images.downsized.url + "></img>").get(0)
         );
       });
     } else {
@@ -138,10 +139,15 @@ function start(data) {
     newButton.onclick = () => buttonClicked(button);
     newButton.className = "tag";
     newButton.style.color = button.textColor;
+    newButton.style.fontFamily =
+      '"Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif';
     newButton.style.borderRadius = button.borderRad;
-    newButton.style.marginRight = "1rem";
-    newButton.style.padding = "8px 3px 8px 3px";
-    newButton.style.width = "8rem";
+    newButton.style.border = "1px solid #747775";
+    newButton.style.marginLeft = "0.5rem";
+    newButton.style.fontSize = ".875rem";
+    newButton.style.fontWeight = "500";
+    newButton.style.padding = "8px 16px";
+    newButton.style.minWidth = "7rem";
     newButton.style.background = button.color;
     $(newButton).hover(
       function () {
@@ -164,14 +170,13 @@ function start(data) {
       $(regions.splitViewRegion).length !== 0
     ) {
       initButtonHelper(regions.watcherRegion);
-    //if in single-pane view
+      //if in single-pane view
     } else if ($(regions.watcherRegion2).length !== 0) {
       initButtonHelper(regions.watcherRegion2);
     }
   }
 
   function initButtonHelper(watcherRegion) {
-    //console.log(watcherRegion)
     $(watcherRegion).each(function () {
       if ($(this).css.display !== "none" && $(this).find(".tag").length === 0) {
         let x = $(this).find(regions.buttonRegion);
@@ -210,13 +215,8 @@ function start(data) {
           childList: true,
           subtree: true,
           attributeOldValue: true,
-          characterDataOldValue: true
+          characterDataOldValue: true,
         });
-
-        //debugging code
-        // if(multi == false){
-        //  console.log(mutationObserver)
-        //}
 
         clearInterval(inter);
       }
@@ -225,7 +225,7 @@ function start(data) {
 
   //main
   try {
-    var APIKEY = "" //add Giphy API key
+    var APIKEY = ""; //add Giphy API key
     startObserver(regions.containerRegion, initButtons);
   } catch (e) {
     console.log("Failed to Initialize");

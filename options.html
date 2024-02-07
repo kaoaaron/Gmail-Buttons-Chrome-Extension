@@ -1,22 +1,164 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Button Options</title>
+    <style>
+      body {
+        background-color: rgb(31, 27, 27);
+        padding: 25px;
+      }
 
-<head>
-  <title>Button Options</title>
-</head>
+      .container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+      }
 
-<body>
-  <div>
-    <button id="addTag" style="background-color:lightgreen">Tag Button</button>
-    <button id="addGif" style="background-color:pink">Gif Button</button>
-    <button id="clear" style="background-color:orange">Clear</button>
-    <button id="save" style="background-color:yellow">Save</button><br />
+      .left-container {
+        display: flex;
+        align-items: center;
+      }
+
+      select {
+        padding: 10px;
+        font-size: 16px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        margin-right: 8px;
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: white;
+        background-image: url('data:image/svg+xml;utf8,<svg fill="%23444444" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 30px; /* Space for custom arrow */
+        transition: all 0.3s ease; /* Add transition for smooth hover effect */
+      }
+
+      /* Hover effect for select */
+      select:hover {
+        border-color: #999;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add shadow on hover */
+      }
+
+      /* Focus effect for select */
+      select:focus {
+        border-color: #333;
+        outline: none; /* Remove default focus outline */
+      }
+
+      /* Styling for select options */
+      option {
+        padding: 10px;
+      }
+
+      .add-button {
+        background-color: rgb(37, 37, 148);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        font-size: 34px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background-color 0.3s ease; /* Add transition */
+      }
+
+      .add-button:hover {
+        background-color: rgb(42, 42, 210); /* Change color on hover */
+      }
+
+      /* Style for other buttons */
+      button {
+        background: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.5s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #save {
+        border: 2px solid green;
+        color: green;
+      }
+
+      #clear {
+        display: none;
+        border: 2px solid orange;
+        color: orange;
+      }
+
+      #clear:hover {
+        color: white;
+      }
+
+      #save:hover {
+        color: white;
+      }
+
+      button:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        border-radius: 0 0 50% 50%;
+        height: 0%;
+        transition: all 0.5s;
+      }
+
+      #save:before {
+        background: green;
+      }
+
+      #clear:before {
+        background: orange;
+      }
+
+      button:hover:before {
+        height: 190%;
+      }
+
+      #status {
+        color: white;
+        position: absolute;
+        top: 10px;
+      }
+
+      #buttonContainer {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="left-container">
+        <select id="color">
+          <option value="text">Text</option>
+          <option value="gif">Gif</option>
+        </select>
+        <button class="add-button" id="add">+</button>
+      </div>
+
+      <div class="right-container">
+        <button id="clear">Clear</button>
+        <button id="save">Save</button>
+      </div>
+    </div>
+
     <span id="status"></span>
-    <br />
     <div id="buttonContainer"></div>
-  </div>
 
-  <script src="options.js"></script>
-</body>
-
+    <script src="options.js"></script>
+  </body>
 </html>

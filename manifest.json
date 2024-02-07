@@ -1,29 +1,22 @@
 {
-    "manifest_version": 2,
-    "name": "Gmail Buttons",
-    "version": "3.001",
-    "icons": {
-        "16": "icon16.png",
-        "48": "icon48.png",
-        "128": "icon128.png"
-    },
-    "options_ui": {
-        "page": "options.html",
-        "open_in_tab": false
-    },
-    "permissions": [
-        "storage"
-    ],
-    "content_scripts": [
-        {
-            "matches": [
-                "*://mail.google.com/*"
-            ],
-            "run_at": "document_end",
-            "js": [
-                "jquery.js",
-                "content.js"
-            ]
-        }
-    ]
+  "manifest_version": 3,
+  "name": "Gmail Buttons",
+  "version": "4.0",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["*://mail.google.com/*"],
+      "run_at": "document_end",
+      "js": ["jquery.js", "content.js"]
+    }
+  ]
 }
