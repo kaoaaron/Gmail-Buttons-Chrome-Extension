@@ -90,11 +90,11 @@ function saveOptions(event) {
 // stored in chrome.storage.
 function restore_options() {
   chrome.storage.local.get(["savedData"], function (result) {
-    if (result.savedData.length > 0) {
-      document.getElementById("clear").style.display = "inline-block";
-    }
-
     if (result.savedData !== undefined) {
+      if (result.savedData.length > 0) {
+        document.getElementById("clear").style.display = "inline-block";
+      }
+
       buttonNum = result.savedData.length + 1;
       document.getElementById("buttonContainer").innerHTML = recoverState(
         result.savedData
@@ -250,7 +250,6 @@ function addButton(
           <img src="giphy.png" alt="giphy icon"><br>
           <label style="color: white;">Search:</label>
           <input type="text" class="gif" value=${gifSearch}><br>
-      </div>
       `
     );
   } else {
@@ -264,7 +263,6 @@ function addButton(
           </b><br><br>
           <label class="labelText">Body Text:</label>
           <textarea class="text" value=${text}>${text}</textarea><br>
-      </div>
       `
     );
   }
