@@ -362,7 +362,7 @@ function addButton(
     } else {
       tempData = tempData.concat(
         `<label class="radio-inline">
-        <label class-"autoText">Auto-Reply: </label> <input class="autoCond" type="radio" name=${
+        <label class="autoText">Auto-Reply: </label> <input class="autoCond" type="radio" name=${
           "auto" + tempButtonNum
         } ><label class="autoText">No</label>
               </label>
