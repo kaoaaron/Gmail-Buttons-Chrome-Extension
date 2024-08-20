@@ -44,8 +44,8 @@ function start(data) {
   function buttonClickedHelper(button, watcherRegion) {
     $(watcherRegion).each(function () {
       let x;
-
-      if ($(this).css("display") !== "none") {
+    
+      if ($(this).css.display !== "none") { 
         if ($(this).find(regions.replyAll).length !== 0) {
           x = $(this).find(regions.replyAll);
         } else {
