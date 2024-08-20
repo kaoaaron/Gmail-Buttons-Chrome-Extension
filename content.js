@@ -116,7 +116,11 @@ function start(data) {
     let range = document.createRange();
 
     if (!button.hasOwnProperty("gif")) {
-      range.setStart(x[0].childNodes[1], 0);
+      if (x[0].childNodes.length > 1) {
+        range.setStart(x[0].childNodes[1], 0);
+      } else {
+        range.setStart(x[0], 0); // Fallback in case childNodes[1] does not exist
+      }
     }
     range.collapse(true);
 
