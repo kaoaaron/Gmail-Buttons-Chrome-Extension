@@ -174,6 +174,7 @@ function addOption(event) {
 }
 
 function removeButton(event, buttonID) {
+  event.preventDefault(); // Prevent default action. This is added
   document.getElementById("button" + buttonID).remove();
   buttonNum--;
 
@@ -181,32 +182,23 @@ function removeButton(event, buttonID) {
     document.getElementById("clear").style.display = "none";
   }
 
+  updateButtonNumbers(buttonID);
+}
+// Instead A seperate function is added to uptade button numbers
+function updateButtonNumbers(removedButtonID) {
   let buttons = document.querySelectorAll(".tagButton, .gifButton");
 
-  //loop through all buttons to change buttonID
-  [].forEach.call(buttons, function (button) {
-    var buttonNum = button.getElementsByClassName("buttonNum")[0].innerHTML; //get button number
-    if (buttonNum > buttonID) {
-      button.getElementsByClassName("buttonNum")[0].innerHTML = (
-        parseInt(buttonNum) - 1
-      ).toString(); //change button number
-      document.getElementById("button" + buttonNum).id =
-        "button" + (parseInt(buttonNum) - 1).toString(); //change button id
-      document.getElementById(buttonNum).id = (
-        parseInt(buttonNum) - 1
-      ).toString(); //change remove button id
-      console.log(buttonNum);
+  buttons.forEach(button => {
+    let buttonNumElem = button.getElementsByClassName("buttonNum")[0];
+    let buttonNum = parseInt(buttonNumElem.innerHTML);
 
-      //get rid of event listener
-      var tempElement = document.getElementById((buttonNum - 1).toString());
+    if (buttonNum > removedButtonID) {
+      buttonNumElem.innerHTML = (buttonNum - 1).toString();
+      button.id = "button" + (buttonNum - 1);
+      document.getElementById(buttonNum).id = (buttonNum - 1).toString();
 
-      var newElement = tempElement.cloneNode(true);
-      tempElement.parentNode.replaceChild(newElement, tempElement);
-
-      //re-apply event listener
-      document
-        .getElementById((buttonNum - 1).toString())
-        .addEventListener("click", () => removeButton(event, buttonNum - 1));
+      // Re-apply event listener
+      document.getElementById((buttonNum - 1).toString()).addEventListener("click", (event) => removeButton(event, buttonNum - 1));
     }
   });
 }
