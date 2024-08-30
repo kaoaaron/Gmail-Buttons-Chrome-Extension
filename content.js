@@ -103,7 +103,6 @@ function start(data) {
           APIKEY
       );
       xhr.done(function (data) {
-        console.log("hi", data);
         $(x)[0].prepend(
           $("<img src=" + data.data.images.downsized.url + "></img>").get(0)
         );
@@ -137,7 +136,7 @@ function start(data) {
     let newButton = document.createElement("button");
     newButton.innerHTML = button.label;
     newButton.onclick = () => buttonClicked(button);
-    newButton.className = "tag";
+    newButton.className = "tag123";
     newButton.style.color = button.textColor;
     newButton.style.fontFamily =
       '"Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif';
@@ -178,25 +177,61 @@ function start(data) {
 
   function initButtonHelper(watcherRegion) {
     $(watcherRegion).each(function () {
-      if ($(this).css.display !== "none" && $(this).find(".tag").length === 0) {
-        let x = $(this).find(regions.buttonRegion);
+      // Check for any divs with the .bGI.nH class inside watcherRegion
+      let divs = $(this).find(".bGI.nH");
 
-        if (x[x.length - 1] !== undefined) {
-          let container = document.createElement("div");
+      divs.each(function () {
+        // Check if the .tag123 class is missing
+        if ($(this).find(".tag123").length === 0) {
+          let x = $(this).find(regions.buttonRegion);
 
-          if ($(this).find(regions.replyAll).length !== 0) {
-            $(this).find(regions.replyAll)[0].innerHTML = "All";
+          if (x[x.length - 1] !== undefined) {
+            let container = document.createElement("div");
+
+            if ($(this).find(regions.replyAll).length !== 0) {
+              $(this).find(regions.replyAll)[0].innerHTML = "All";
+            }
+
+            for (let i = 0; i < buttons.length; i++) {
+              let newButton = addButton(buttons[i]);
+              container.append(newButton);
+            }
+
+            x[x.length - 1].appendChild(container);
           }
-
-          for (let i = 0; i < buttons.length; i++) {
-            let newButton = addButton(buttons[i]);
-            container.append(newButton);
-          }
-
-          x[x.length - 1].appendChild(container);
         }
-      }
+      });
     });
+  }
+
+  function observeNewDivs() {
+    const interval = setInterval(() => {
+      const targetNode = document.querySelector(".AO"); // The parent element to observe
+
+      if (targetNode) {
+        clearInterval(interval); // Stop checking once the element is found
+
+        const config = { childList: true, subtree: true };
+
+        const callback = function (mutationsList) {
+          for (const mutation of mutationsList) {
+            if (mutation.type === "childList") {
+              mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1 && node.matches(".bGI.nH")) {
+                  console.log("New .bGI.nH div appeared!");
+
+                  // Initialize buttons in the new div
+                  initButtonHelper(node);
+                }
+              });
+            }
+          }
+        };
+
+        const observer = new MutationObserver(callback);
+        observer.observe(targetNode, config);
+      }
+    }, 300);
   }
 
   //look for changes in DOM element
@@ -227,6 +262,7 @@ function start(data) {
   try {
     var APIKEY = ""; //add Giphy API key
     startObserver(regions.containerRegion, initButtons);
+    observeNewDivs();
   } catch (e) {
     console.log("Failed to Initialize");
   }
