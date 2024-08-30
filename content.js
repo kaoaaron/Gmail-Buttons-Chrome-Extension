@@ -27,6 +27,7 @@ function start(data) {
     replyAll: "span.ams.bkI",
     reply: "span.ams.bkH",
     send: ".T-I.J-J5-Ji.v7",
+    dynamicPanes: ".bGI.nH",
   };
 
   function buttonClicked(button) {
@@ -206,10 +207,10 @@ function start(data) {
 
   function observeNewDivs() {
     const interval = setInterval(() => {
-      const targetNode = document.querySelector(".AO"); // The parent element to observe
+      const targetNode = document.querySelector(".AO");
 
       if (targetNode) {
-        clearInterval(interval); // Stop checking once the element is found
+        clearInterval(interval);
 
         const config = { childList: true, subtree: true };
 
@@ -218,9 +219,6 @@ function start(data) {
             if (mutation.type === "childList") {
               mutation.addedNodes.forEach((node) => {
                 if (node.nodeType === 1 && node.matches(".bGI.nH")) {
-                  console.log("New .bGI.nH div appeared!");
-
-                  // Initialize buttons in the new div
                   initButtonHelper(node);
                 }
               });
