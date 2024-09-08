@@ -1,22 +1,13 @@
-//grab user data
+const APIKEY = ""; // Add Giphy API key
+
+// Grab user data
 chrome.storage.local.get(["container", "savedData"], function (result) {
-  if (result.savedData !== undefined && result.savedData.length !== 0) {
+  if (result.savedData && result.savedData.length) {
     start(result.savedData);
   }
 });
 
-function start(data) {
-  const buttons = data;
-
-  /*region info
-   * textRegion: where you type in gmail
-   * containerRegion: the container
-   * buttonRegion: where buttons are injected
-   * watcherRegion: close child of container region
-   * watcherRegion2: for default Gmail view
-   * replayAll: reply button reference
-   * send: send button reference
-   */
+function start(buttons) {
   const regions = {
     textRegion: ".Am.aO9.Al.editable.LW-avf",
     containerRegion: ".nH.ar4",
@@ -30,179 +21,169 @@ function start(data) {
     dynamicPanes: ".bGI.nH",
   };
 
+  function getActivePane() {
+    if ($(regions.watcherRegion).length && $(regions.splitViewRegion).length) {
+      return $(regions.watcherRegion).filter(function () {
+        return $(this).css("display") !== "none";
+      });
+    }
+    return $(regions.watcherRegion2).length ? $(regions.watcherRegion2) : null;
+  }
+
   function buttonClicked(button) {
-    //button click action
-    if (
-      $(regions.watcherRegion).length !== 0 &&
-      $(regions.splitViewRegion).length !== 0
-    ) {
-      buttonClickedHelper(button, regions.watcherRegion);
-    } else if ($(regions.watcherRegion2).length !== 0) {
-      buttonClickedHelper(button, regions.watcherRegion2);
+    const activePane = getActivePane();
+    if (activePane) {
+      buttonClickedHelper(button, activePane);
     }
   }
 
   function buttonClickedHelper(button, watcherRegion) {
-    $(watcherRegion).each(function () {
-      let x;
+    const visiblePanes = $(watcherRegion)
+      .find(regions.dynamicPanes)
+      .filter(function () {
+        return $(this).css("display") !== "none";
+      });
 
-      if ($(this).css("display") !== "none") {
-        if ($(this).find(regions.replyAll).length !== 0) {
-          x = $(this).find(regions.replyAll);
-        } else {
-          x = $(this).find(regions.reply);
-        }
-
-        if (x.length !== 0) {
-          $(x)[0].click();
-          addTag(button);
-        }
+    visiblePanes.each(function () {
+      const pane = $(this);
+      const replyButton = pane.find(regions.replyAll).length
+        ? pane.find(regions.replyAll)
+        : pane.find(regions.reply);
+      if (replyButton.length) {
+        replyButton[0].click();
+        addTag(button);
+        return false; // Break out of the loop after processing
       }
     });
   }
 
   function addTag(button) {
-    var startTime = new Date().getTime();
-
-    let inter = setInterval(function () {
-      if (new Date().getTime() - startTime > 3000) {
-        clearInterval(inter);
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      if (Date.now() - startTime > 3000) {
+        clearInterval(interval);
         return;
       }
 
-      if (
-        $(regions.watcherRegion).length !== 0 &&
-        $(regions.splitViewRegion).length !== 0
-      ) {
-        $(regions.watcherRegion).each(function () {
-          if (
-            $(this).css.display !== "none" &&
-            $(this).find(regions.textRegion).length !== 0
-          ) {
-            let x = $(this).find(regions.textRegion);
-            addTagHelper(button, x, inter);
-          }
-        });
-      } else if ($(regions.watcherRegion2).length !== 0) {
-        $(regions.watcherRegion2).each(function () {
-          if ($(this).find(regions.textRegion).length !== 0) {
-            let x = $(this).find(regions.textRegion);
-            addTagHelper(button, x, inter);
-          }
+      const activePane = getActivePane();
+      if (activePane) {
+        activePane.each(function () {
+          const pane = $(this);
+          const visibleDynamicPanes = pane
+            .find(regions.dynamicPanes)
+            .filter(function () {
+              return $(this).css("display") !== "none";
+            });
+
+          visibleDynamicPanes.each(function () {
+            const dynamicPane = $(this);
+            const textRegions = dynamicPane.find(regions.textRegion);
+            if (textRegions.length) {
+              addTagHelper(button, textRegions.first(), interval);
+              return false; // Break out of the loop after processing
+            }
+          });
         });
       }
     }, 1000);
   }
 
-  function addTagHelper(button, x, inter) {
-    if (button.hasOwnProperty("gif")) {
-      clearInterval(inter);
-      var xhr = $.get(
-        "https://api.giphy.com/v1/gifs/random?tag=" +
-          button.gif.replace(" ", "+") +
-          "&api_key=" +
-          APIKEY
-      );
-      xhr.done(function (data) {
-        $(x)[0].prepend(
-          $("<img src=" + data.data.images.downsized.url + "></img>").get(0)
+  function addTagHelper(button, textRegion, interval) {
+    if (button.gif) {
+      clearInterval(interval);
+      $.get(
+        `https://api.giphy.com/v1/gifs/random?tag=${button.gif.replace(
+          " ",
+          "+"
+        )}&api_key=${APIKEY}`
+      ).done((data) => {
+        $(textRegion).prepend(
+          `<img src="${data.data.images.downsized.url}"></img>`
         );
       });
     } else {
-      let tempTag = button.tag.replace(/(?:\r\n|\r|\n)/g, "<br>");
-      $(x)[0].prepend($("<div>" + tempTag + "<br/></br></div>").get(0));
+      const tempTag = button.tag.replace(/(?:\r\n|\r|\n)/g, "<br>");
+      $(textRegion).prepend(`<div>${tempTag}<br/></br></div>`);
     }
 
-    let range = document.createRange();
-
-    if (!button.hasOwnProperty("gif")) {
-      range.setStart(x[0].childNodes[1], 0);
+    const range = document.createRange();
+    if (!button.gif) {
+      range.setStart(textRegion[0].childNodes[1], 0);
     }
     range.collapse(true);
 
-    if ($(regions.send).length > 0 && button.auto) {
+    if ($(regions.send).length && button.auto) {
       $(regions.send)[0].click();
-      //any other buttons action
     } else {
-      let sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
 
-    clearInterval(inter);
+    clearInterval(interval);
   }
 
-  //adds a single button
   function addButton(button) {
-    let newButton = document.createElement("button");
+    const newButton = document.createElement("button");
     newButton.innerHTML = button.label;
     newButton.onclick = () => buttonClicked(button);
     newButton.className = "tag123";
-    newButton.style.color = button.textColor;
-    newButton.style.fontFamily =
-      '"Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif';
-    newButton.style.borderRadius = button.borderRad;
-    newButton.style.border = "1px solid #747775";
-    newButton.style.marginLeft = "0.5rem";
-    newButton.style.fontSize = ".875rem";
-    newButton.style.fontWeight = "500";
-    newButton.style.padding = "8px 16px";
-    newButton.style.minWidth = "7rem";
-    newButton.style.background = button.color;
+    Object.assign(newButton.style, {
+      color: button.textColor,
+      fontFamily: '"Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif',
+      borderRadius: button.borderRad,
+      border: "1px solid #747775",
+      marginLeft: "0.5rem",
+      fontSize: ".875rem",
+      fontWeight: "500",
+      padding: "8px 16px",
+      minWidth: "7rem",
+      background: button.color,
+    });
     $(newButton).hover(
-      function () {
-        $(this).css("background-color", button.hoverColor);
-        $(this).css("color", button.hoverFColor);
-      },
-      function () {
-        $(this).css("background-color", button.color);
-        $(this).css("color", button.textColor);
-      }
+      () =>
+        $(newButton).css({
+          backgroundColor: button.hoverColor,
+          color: button.hoverFColor,
+        }),
+      () =>
+        $(newButton).css({
+          backgroundColor: button.color,
+          color: button.textColor,
+        })
     );
     return newButton;
   }
 
-  //initialize buttons
   function initButtons() {
-    //if in multi-pane view
-    if (
-      $(regions.watcherRegion).length !== 0 &&
-      $(regions.splitViewRegion).length !== 0
-    ) {
-      initButtonHelper(regions.watcherRegion);
-      //if in single-pane view
-    } else if ($(regions.watcherRegion2).length !== 0) {
-      initButtonHelper(regions.watcherRegion2);
+    const activePane = getActivePane();
+    if (activePane) {
+      initButtonHelper(activePane);
     }
   }
 
   function initButtonHelper(watcherRegion) {
-    $(watcherRegion).each(function () {
-      // Check for any divs with the .bGI.nH class inside watcherRegion
-      let divs = $(this).find(".bGI.nH");
-
-      divs.each(function () {
-        // Check if the .tag123 class is missing
+    $(watcherRegion)
+      .find(".bGI.nH")
+      .each(function () {
         if ($(this).find(".tag123").length === 0) {
-          let x = $(this).find(regions.buttonRegion);
+          const buttonRegion = $(this).find(regions.buttonRegion).last();
+          if (buttonRegion.length) {
+            const container = document.createElement("div");
 
-          if (x[x.length - 1] !== undefined) {
-            let container = document.createElement("div");
-
-            if ($(this).find(regions.replyAll).length !== 0) {
+            if ($(this).find(regions.replyAll).length) {
               $(this).find(regions.replyAll)[0].innerHTML = "All";
             }
 
-            for (let i = 0; i < buttons.length; i++) {
-              let newButton = addButton(buttons[i]);
+            buttons.forEach((button) => {
+              const newButton = addButton(button);
               container.append(newButton);
-            }
+            });
 
-            x[x.length - 1].appendChild(container);
+            buttonRegion.append(container);
           }
         }
       });
-    });
   }
 
   function observeNewDivs() {
@@ -211,11 +192,8 @@ function start(data) {
 
       if (targetNode) {
         clearInterval(interval);
-
-        const config = { childList: true, subtree: true };
-
-        const callback = function (mutationsList) {
-          for (const mutation of mutationsList) {
+        const observer = new MutationObserver((mutationsList) => {
+          mutationsList.forEach((mutation) => {
             if (mutation.type === "childList") {
               mutation.addedNodes.forEach((node) => {
                 if (node.nodeType === 1 && node.matches(".bGI.nH")) {
@@ -223,26 +201,21 @@ function start(data) {
                 }
               });
             }
-          }
-        };
-
-        const observer = new MutationObserver(callback);
-        observer.observe(targetNode, config);
+          });
+        });
+        observer.observe(targetNode, { childList: true, subtree: true });
       }
     }, 300);
   }
 
-  //look for changes in DOM element
-  function startObserver(region, fanction) {
-    let inter = setInterval(function () {
-      let panel = $(region);
-
-      if (panel.length > 0) {
-        var mutationObserver = new MutationObserver(function (mutations) {
-          mutations.forEach(() => fanction(mutationObserver));
+  function startObserver(region, callback) {
+    const interval = setInterval(() => {
+      const panel = $(region);
+      if (panel.length) {
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach(() => callback(observer));
         });
-
-        mutationObserver.observe(panel[0], {
+        observer.observe(panel[0], {
           attributes: true,
           characterData: true,
           childList: true,
@@ -250,18 +223,16 @@ function start(data) {
           attributeOldValue: true,
           characterDataOldValue: true,
         });
-
-        clearInterval(inter);
+        clearInterval(interval);
       }
     }, 300);
   }
 
-  //main
+  // Main
   try {
-    var APIKEY = ""; //add Giphy API key
     startObserver(regions.containerRegion, initButtons);
     observeNewDivs();
   } catch (e) {
-    console.log("Failed to Initialize");
+    console.log("Failed to Initialize", e);
   }
 }
